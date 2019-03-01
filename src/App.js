@@ -1,8 +1,10 @@
-import React, { Component } from 'react';
+import React, { useState, useRef } from 'react';
 
 import PostComments from './comments/PostComments';
 
 import './App.css';
+
+// TODO mark as unread not working
 
 const COMMENT_STATUS = {
     READ: 'read',
@@ -20,43 +22,36 @@ const getReadComments = readSavedMap =>
 const getSavedComments = readSavedMap =>
     getCommentsWithStatus(COMMENT_STATUS.SAVED, readSavedMap);
 
-class App extends Component {
-    constructor(props) {
-        super(props);
-        this.state = { activePostId: null, readSavedMap: {} };
+const App = () => {
+    const [activePostId, setActivePostId] = useState(null);
+    const [readSavedMap, setReadSavedMap] = useState({});
 
-        this.input = null;
-    }
+    const inputRef = useRef(null);
 
-    setPostId = () => {
-        const activePostId = this.input.value;
-        this.setState({ activePostId });
+    const setPostId = () => {
+        setActivePostId(inputRef.current.value);
     };
 
-    saveComment = id => {
-        this.setState(({ readSavedMap }) => ({
-            readSavedMap: {
-                ...readSavedMap,
-                [id]: COMMENT_STATUS.SAVED
-            }
+    const saveComment = id => {
+        setReadSavedMap(readSavedMap => ({
+            ...readSavedMap,
+            [id]: COMMENT_STATUS.SAVED
         }));
     };
 
-    readComment = id => {
-        this.setState(({ readSavedMap }) => ({
-            readSavedMap: {
-                ...readSavedMap,
-                [id]: COMMENT_STATUS.READ
-            }
+    const readComment = id => {
+        setReadSavedMap(readSavedMap => ({
+            ...readSavedMap,
+            [id]: COMMENT_STATUS.READ
         }));
     };
 
-    resetPostId = () => {
-        this.input.value = '';
-        this.setState({ activePostId: null });
+    const resetPostId = () => {
+        inputRef.current.value = '';
+        setActivePostId(null);
     };
 
-    render = () => (
+    return (
         <div className="App">
             <header className="App-header">
                 <h1 className="App-title">HN fire comments</h1>
@@ -64,34 +59,25 @@ class App extends Component {
             <div>
                 <label htmlFor="postId">
                     Post ID:
-                    <input
-                        type="text"
-                        name="postId"
-                        ref={input => {
-                            this.input = input;
-                        }}
-                    />
+                    <input type="text" name="postId" ref={inputRef} />
                 </label>
-                <button onClick={this.setPostId}>Set Post ID</button>
-                <button onClick={this.resetPostId}>Reset</button>
+                <button onClick={setPostId}>Set Post ID</button>
+                <button onClick={resetPostId}>Reset</button>
             </div>
             <div>
-                <p>
-                    {this.state.activePostId &&
-                        `Post id ${this.state.activePostId}`}
-                </p>
-                {this.state.activePostId && (
+                <p>{activePostId && `Post id ${activePostId}`}</p>
+                {activePostId && (
                     <PostComments
-                        postId={this.state.activePostId}
-                        read={getReadComments(this.state.readSavedMap)}
-                        saved={getSavedComments(this.state.readSavedMap)}
-                        onRead={this.readComment}
-                        onSaved={this.saveComment}
+                        postId={activePostId}
+                        read={getReadComments(readSavedMap)}
+                        saved={getSavedComments(readSavedMap)}
+                        onRead={readComment}
+                        onSaved={saveComment}
                     />
                 )}
             </div>
         </div>
     );
-}
+};
 
 export default App;
